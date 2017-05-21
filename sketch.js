@@ -1,4 +1,4 @@
-var speedMultiplier = 2;
+var speedMultiplier = 1;
 var floorHeight = 40;
 var floorCount = 10;
 var machineRoomHeight = 30;
@@ -18,14 +18,16 @@ function isNumber(n) {
 }
 
 function Elevator() {
-	var initFloor = getFloor(10);
+	this.stopped = true;
+	var initFloor = getFloor(1);
 	this.currentFloor = initFloor;
-	this.goingTo = getFloor(1);
-	this.calls = [getFloor(10), getFloor(1)];
+	this.goingTo = getFloor(2);
+	this.calls = [];
 	this.x = this.currentFloor.x;
 	this.y = this.currentFloor.y;
 	this.peopleCount = 0;
 	this.speed = elevatorSpeed;
+	this.traveledFloors = 0;
 
 	this.display = function() {
 		fill(245, 195, 66);
@@ -49,6 +51,7 @@ function Elevator() {
 			return;
 		}
 		this.y += this.speed * getDirection(this.y, this.goingTo.y);
+		this.traveledFloors += this.speed / floorHeight;
 	}
 }
 
@@ -88,6 +91,14 @@ function setup() {
   button.position(input.x + input.width, 65);
   button.mousePressed(moveToFloor);
 
+	button = createButton('Start');
+  button.position(500, 530);
+  button.mousePressed(startElevator);
+
+  button = createButton('Stop');
+  button.position(500, 550);
+  button.mousePressed(stopElevator);
+
   greeting = createElement('h2', 'Gdzie chcesz pojechac?');
   greeting.position(520, 5);
 }
@@ -96,7 +107,11 @@ function draw() {
 	background(100);  
   drawFloors();
   drawMachineRoom();
-	elevator.move();
+  text("Dystans: " + elevator.traveledFloors.toFixed(0), 500, 500);
+  elevator.stopped ? text("Winda zatrzymana" , 500, 520) : text("Winda uruchomiona" , 500, 520);
+  if (!elevator.stopped) {
+		elevator.move();
+	}
   elevator.display();
 }
 
@@ -106,4 +121,12 @@ function moveToFloor() {
 	if (isNumber(floorNumber)) {
 		elevator.moveToFloor(floorNumber);
 	}
+}
+
+function stopElevator() {
+	elevator.stopped = true;
+}
+
+function startElevator() {
+	elevator.stopped = false;
 }
