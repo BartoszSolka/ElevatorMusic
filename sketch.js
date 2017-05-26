@@ -19,6 +19,45 @@ var elevator;
 var input;
 var button;
 
+function CallQueue(calls, evaluateFn) {
+	this.calls = calls || [];
+	this.evaluateFn = evaluateFn;
+
+	this.push = function (payload) {
+		this.calls.push({
+			payload: payload,
+			time: new Date().getTime(),
+		});
+	};
+
+	this.pop = function () {
+		var call;
+		var priority = 0;
+		var highestPriorityIndex = -1;
+		var highestPriority = 0;
+
+		for (var i = 0; i < this.calls.length; i++) {
+			priority = this.evaluateFn(this.calls[i]);
+			if (priority > highestPriority) {
+				highestPriority = priority;
+				highestPriorityIndex = i;
+			}
+		}
+
+		if (highestPriorityIndex < 0) {
+			return null;
+		} else {
+			call = this.calls[highestPriorityIndex];
+			this.calls.splice(highestPriorityIndex, 1);
+			return call.payload;
+		}
+	};
+
+	this.length = function () {
+		return this.calls.length;
+	};
+}
+
 function isNumber(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -119,14 +158,14 @@ function setup() {
 
 function draw() {
 	background(100);
-  drawFloors();
-  drawMachineRoom();
-  text("Dystans: " + elevator.traveledFloors.toFixed(0), 500, 500);
-  elevator.stopped ? text("Winda zatrzymana" , 500, 520) : text("Winda uruchomiona" , 500, 520);
-  if (!elevator.stopped) {
+	drawFloors();
+	drawMachineRoom();
+	text("Dystans: " + elevator.traveledFloors.toFixed(0), 500, 500);
+	elevator.stopped ? text("Winda zatrzymana" , 500, 520) : text("Winda uruchomiona" , 500, 520);
+	if (!elevator.stopped) {
 		elevator.move();
 	}
-  elevator.display();
+ elevator.display();
 }
 
 function moveToFloor() {
