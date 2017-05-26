@@ -1,3 +1,9 @@
+const ALGORITHMS = {
+  FIRST_COME_FIRST_SERVED: 'FIRST_COME_FIRST_SERVED',
+  SHORTEST_JOB_NEXT: 'SHORTEST_JOB_NEXT',
+  SHORTEST_REMAINING_TIME: 'SHORTEST_REMAINING_TIME',
+};
+
 var speedMultiplier = 1;
 var floorHeight = 40;
 var floorCount = 10;
@@ -28,6 +34,7 @@ function Elevator() {
 	this.peopleCount = 0;
 	this.speed = elevatorSpeed;
 	this.traveledFloors = 0;
+	this.algorithm = ALGORITHMS.FIRST_COME_FIRST_SERVED;
 
 	this.display = function() {
 		fill(245, 195, 66);
@@ -99,12 +106,19 @@ function setup() {
   button.position(500, 550);
   button.mousePressed(stopElevator);
 
+		var sel = createSelect();
+		sel.option('First-Come-First-Served', ALGORITHMS.FIRST_COME_FIRST_SERVED);
+		sel.option('Shortest-Job-Next', ALGORITHMS.SHORTEST_JOB_NEXT);
+		sel.option('Shortest-Remaining-Time', ALGORITHMS.SHORTEST_REMAINING_TIME);
+		sel.position(500, 580);
+		sel.changed(onAlgorithSelectChange);
+
   greeting = createElement('h2', 'Gdzie chcesz pojechac?');
   greeting.position(520, 5);
 }
 
 function draw() {
-	background(100);  
+	background(100);
   drawFloors();
   drawMachineRoom();
   text("Dystans: " + elevator.traveledFloors.toFixed(0), 500, 500);
@@ -129,4 +143,8 @@ function stopElevator() {
 
 function startElevator() {
 	elevator.stopped = false;
+}
+
+function onAlgorithSelectChange(evt) {
+	elevator.algorithm = evt.target.value;
 }
