@@ -1,7 +1,6 @@
 const ALGORITHMS = {
   FIRST_COME_FIRST_SERVED: 'FIRST_COME_FIRST_SERVED',
   SHORTEST_JOB_NEXT: 'SHORTEST_JOB_NEXT',
-  SHORTEST_REMAINING_TIME: 'SHORTEST_REMAINING_TIME',
 };
 
 var speedMultiplier = 1;
@@ -19,25 +18,34 @@ var elevator;
 var input;
 var button;
 
-function CallQueue(calls, evaluateFn) {
-	this.calls = calls || [];
-	this.evaluateFn = evaluateFn;
+function CallQueue() {
+	this.items = [];
+	this.algorithm = ALGORITHMS.FIRST_COME_FIRST_SERVED;
 
-	this.push = function (payload) {
-		this.calls.push({
-			payload: payload,
+	this.evaluateItem = function (item, floorNo) {
+		switch (this.algorithm) {
+			case ALGORITHMS.FIRST_COME_FIRST_SERVED:
+				return 1.0 / item.time;
+			case ALGORITHMS.SHORTEST_JOB_NEXT:
+				return 1.0 / (abs(item.call.floor - floorNo) + 1);
+		}
+	};
+
+	this.push = function (call) {
+		this.items.push({
+			call: call,
 			time: new Date().getTime(),
 		});
 	};
 
-	this.pop = function () {
-		var call;
+	this.pop = function (floorNo) {
+		var item;
 		var priority = 0;
 		var highestPriorityIndex = -1;
 		var highestPriority = 0;
 
-		for (var i = 0; i < this.calls.length; i++) {
-			priority = this.evaluateFn(this.calls[i]);
+		for (var i = 0; i < this.items.length; i++) {
+			priority = this.evaluateItem(this.items[i], floorNo);
 			if (priority > highestPriority) {
 				highestPriority = priority;
 				highestPriorityIndex = i;
@@ -47,14 +55,14 @@ function CallQueue(calls, evaluateFn) {
 		if (highestPriorityIndex < 0) {
 			return null;
 		} else {
-			call = this.calls[highestPriorityIndex];
-			this.calls.splice(highestPriorityIndex, 1);
-			return call.payload;
+			item = this.items[highestPriorityIndex];
+			this.items.splice(highestPriorityIndex, 1);
+			return item.call;
 		}
 	};
 
 	this.length = function () {
-		return this.calls.length;
+		return this.items.length;
 	};
 }
 
@@ -67,13 +75,13 @@ function Elevator() {
 	var initFloor = getFloor(1);
 	this.currentFloor = initFloor;
 	this.goingTo = getFloor(2);
-	this.calls = [];
 	this.x = this.currentFloor.x;
 	this.y = this.currentFloor.y;
 	this.peopleCount = 0;
 	this.speed = elevatorSpeed;
 	this.traveledFloors = 0;
 	this.algorithm = ALGORITHMS.FIRST_COME_FIRST_SERVED;
+	this.queue = new CallQueue();
 
 	this.display = function() {
 		fill(245, 195, 66);
@@ -83,16 +91,14 @@ function Elevator() {
 	};
 
 	this.moveToFloor = function(floorNumber) {
-		this.calls.push(getFloor(floorNumber));
-		console.log(floorNumber, this.calls, this.calls.length);
+		this.queue.push(getFloor(floorNumber));
 	};
 
 	this.move = function() {
 		if (abs(this.y - this.goingTo.y) < 1) {
 			this.currentFloor = this.goingTo;
-			if (this.calls.length) {
-				this.goingTo = this.calls[0];
-				this.calls.shift();
+			if (this.queue.length()) {
+				this.goingTo = this.queue.pop(this.currentFloor.floor);
 			}
 			return;
 		}
@@ -148,7 +154,6 @@ function setup() {
 		var sel = createSelect();
 		sel.option('First-Come-First-Served', ALGORITHMS.FIRST_COME_FIRST_SERVED);
 		sel.option('Shortest-Job-Next', ALGORITHMS.SHORTEST_JOB_NEXT);
-		sel.option('Shortest-Remaining-Time', ALGORITHMS.SHORTEST_REMAINING_TIME);
 		sel.position(500, 580);
 		sel.changed(onAlgorithSelectChange);
 
@@ -185,5 +190,5 @@ function startElevator() {
 }
 
 function onAlgorithSelectChange(evt) {
-	elevator.algorithm = evt.target.value;
+	elevator.queue.algorithm = evt.target.value;
 }
