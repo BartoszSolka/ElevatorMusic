@@ -80,7 +80,6 @@ function Elevator() {
 	this.peopleCount = 0;
 	this.speed = elevatorSpeed;
 	this.traveledFloors = 0;
-	this.algorithm = ALGORITHMS.FIRST_COME_FIRST_SERVED;
 	this.queue = new CallQueue();
 
 	this.display = function() {
